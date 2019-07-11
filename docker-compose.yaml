@@ -1,0 +1,14 @@
+version: '3'
+services:
+  radiogram_io:
+    build: .
+    ports:
+      - 54001:8080
+    volumes:
+      - ./app/src:/app/src
+      - ./app/public:/app/public
+
+  radiogram_io_bash:
+    build: .
+    volumes:
+      - ./app:/app
