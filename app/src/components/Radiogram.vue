@@ -90,6 +90,11 @@
   // align-items: flex-start;
   width: 300px;
   flex: 0;
+  @media screen and (max-width: 800px) {
+    display: flex;
+    flex: 1;
+    margin-left: 15px;
+  }
 }
 .radiogram-form {
   display: flex;
