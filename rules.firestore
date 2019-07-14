@@ -1,0 +1,38 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /callsigns/{callsign} {
+      match /messages/{message} {
+        allow read: if true;
+        allow create: if request.resource.data.timestamp == request.time
+                      && request.resource.data.number is int
+                      && request.resource.data.number > 0
+                      && request.resource.data.precedence is string
+                      && request.resource.data.precedence.size() < 8
+                      && request.resource.data.hx is string
+                      && request.resource.data.hx.size() < 8
+                      && request.resource.data.stationOfOrigin is string
+                      && request.resource.data.stationOfOrigin.size() >= 4
+                      && request.resource.data.stationOfOrigin.size() < 16
+                      && request.resource.data.placeOfOrigin is string
+                      && request.resource.data.placeOfOrigin.size() < 32
+                      && request.resource.data.dateFiled is string
+                      && request.resource.data.dateFiled.size() == 10
+                      && request.resource.data.timeFiled is string
+                      && request.resource.data.timeFiled.size() == 5
+                      && request.resource.data.destination is string
+                      && request.resource.data.destination.size() >= 4
+                      && request.resource.data.destination.size() < 2056
+                      && request.resource.data.destinationPhone is string
+                      && request.resource.data.destinationPhone.size() < 64
+                      && request.resource.data.destinationEmail is string
+                      && request.resource.data.destinationEmail.size() < 128
+                      && request.resource.data.check is int
+                      && request.resource.data.check <= 25
+                      && request.resource.data.message is string
+                      && request.resource.data.message.size() < 2056
+
+      }
+    }
+  }
+}

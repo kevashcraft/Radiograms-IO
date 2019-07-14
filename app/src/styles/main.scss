@@ -49,3 +49,12 @@ body {
   padding: 15px;
   margin: 0 10px;
 }
+
+.md-field.md-theme-default label {
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, .8)
+}
+
+.md-field.md-theme-default.md-focused label {
+  color: rgba(0, 0, 0, .8)
+}
