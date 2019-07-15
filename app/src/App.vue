@@ -1,51 +1,22 @@
 <template>
   <div id="app">
-    <Radiogram @send="confirmRadiogram($event)" ref="radiogram" />
-    <md-dialog :md-active.sync="showRadiogramConfirm" class="radiogram-confirm-dialog">
-      <md-dialog-title>Confirm Radiogram Transmission</md-dialog-title>
-      <md-content>
-        <div class="radiogram-preview-header">
-          <p>
-            <span>{{radiogram.number}}</span>
-            <span>-</span>
-            <span>{{radiogram.precedence}}</span>
-            <span>-</span>
-            <span>{{radiogram.hx}}</span>
-            <span>-</span>
-            <span>{{radiogram.stationOfOrigin}}</span>
-            <span>-</span>
-            <span>{{radiogram.check}}</span>
-            <span>-</span>
-            <span v-show="radiogram.placeOfOrigin">{{radiogram.placeOfOrigin}}</span>
-            <span v-show="radiogram.placeOfOrigin">-</span>
-            <span>{{radiogram.timeFiled}}</span>
-            <span>-</span>
-            <span>{{radiogram.dateFiled}}</span>
-          </p>
-        </div>
-        <div class="radiogram-preview-text">
-          <p>{{radiogram.message}}</p>
-        </div>
-      </md-content>
-      <md-dialog-actions>
-        <md-button @click="addRadiogram" class="md-primary md-raised">Send it</md-button>
-      </md-dialog-actions>
-    </md-dialog>
-    <CallsignDialog ref="callsignDialog" @callsign="setCallsign" />
-    <md-button @click="openCallsignDialog" class="md-primary md-raised">Open</md-button>
-    <md-list>
-      <md-list-item v-for="msg in messages" :key="msg.id">
-        <span>{{msg.number}}</span>
-      </md-list-item>
-    </md-list>
+    <div id="window">
+      <Radiogram :callsign="callsign" @callsignopen="openCallsignDialog" @send="confirmRadiogram($event)" ref="radiogram" />
+      <RadiogramList :radiograms="radiograms" />
+    </div>
+    <RadiogramDialog :radiogram="radiogram" @sendit="addRadiogram" ref="radiogramDialog" />
+    <CallsignDialog @callsign="setCallsign" ref="callsignDialog" />
     <md-snackbar md-position="center" :md-duration="2500" :md-active.sync="showSnackbar" md-persistent>
       <span>{{ snackbarMessage }}</span>
-    </md-snackbar>  </div>
+    </md-snackbar>
+  </div>
 </template>
 
 <script>
 import CallsignDialog from './components/CallsignDialog.vue'
 import Radiogram from './components/Radiogram.vue'
+import RadiogramDialog from './components/RadiogramDialog.vue'
+import RadiogramList from './components/RadiogramList.vue'
 import firebase from 'firebase'
 import 'firebase/firestore'
 import moment from 'moment'
@@ -64,7 +35,9 @@ export default {
   name: 'app',
   components: {
     CallsignDialog,
-    Radiogram
+    Radiogram,
+    RadiogramList,
+    RadiogramDialog
   },
   created () {
     let firebaseConfig = {
@@ -80,26 +53,25 @@ export default {
     try {
       firebase.initializeApp(firebaseConfig);
     } catch (e) {
-      console.log('Already inited!');
+      // console.log('Already inited!');
     }
 
     this.db = firebase.firestore()
+
+    let callsign = window.localStorage.getItem('callsign')
+    if (callsign) this.callsign = callsign
   },
   data () {
     return {
-      callsign: 'KM4FPA',
-      callsignDialogOpened: false,
-      snapshotListener: false,
-      messages: [],
-      count: 0,
-      showRadiogramConfirm: false,
+      callsign: '',
+      radiogram: {},
+      radiograms: [],
       showSnackbar: false,
       snackbarMessage: '',
-      radiogram: {}
     }
   },
   mounted () {
-    this.getMessages()
+    if (this.callsign) this.getRadiograms()
   },
   methods: {
     openCallsignDialog() {
@@ -107,16 +79,20 @@ export default {
     },
     setCallsign (callsign) {
       this.callsign = callsign
-      this.getMessages()
+      window.localStorage.setItem('callsign', callsign)
+      this.getRadiograms()
     },
-    getMessages () {
-      console.log('master send first');
-      // let ref = this.db.collection('testing').doc(this.callsign).collection('2019')
-      // ref.get().then(snapshot => {
-      //   let messages = []
-      //   snapshot.forEach(doc => messages.push(doc.data()))
-      //   this.messages = messages
-      // })
+    getRadiograms () {
+      if (!this.callsign) return
+      let year = parseInt(moment().format('YYYY'))
+      let callsignRef = this.db.collection('callsigns').doc(this.callsign)
+      let radiogramsRef = callsignRef.collection('radiograms').where('year', '==', year)
+      radiogramsRef.get().then(snapshot => {
+        let radiograms = []
+        snapshot.forEach(doc => radiograms.push(doc.data()))
+        this.radiograms = radiograms.sort((a, b) => a.number < b.number ? 1 : -1)
+        this.$refs['radiogram'].setNumber(this.radiograms[0].number + 1)
+      })
     },
     confirmRadiogram(radiogram) {
       this.radiogram = this.formatRadiogram(radiogram)
@@ -162,6 +138,7 @@ export default {
       }
 
       if (snackbar === false) {
+        this.$refs['radiogramDialog'].open()
         this.showRadiogramConfirm = true
       } else {
         this.snackbarMessage = snackbar
@@ -172,17 +149,17 @@ export default {
     addRadiogram() {
       let radiogram = Object.assign({}, this.radiogram)
       radiogram.timestamp = firebase.firestore.FieldValue.serverTimestamp()
-      radiogram.message = radiogram.messageGroups.join(' ')
 
       let docId = moment().format('YYYY') + '-' + radiogram.number + '-' + makeid(4)
 
       let stationRef =  this.db.collection('callsigns').doc('KM4FPA')
-      let docRef = stationRef.collection('messages').doc(docId)
+      let docRef = stationRef.collection('radiograms').doc(docId)
       docRef.set(radiogram).then(() => {
+        this.radiograms.push(radiogram)
+        this.$refs['radiogram'].reset(radiogram.number + 1)
         this.showRadiogramConfirm = false
         this.snackbarMessage = 'Message sent!'
         this.showSnackbar = true;
-        // this.getMessages()
       })
       .catch((error) => {
         this.snackbarMessage = 'Error: ' + error
@@ -191,10 +168,13 @@ export default {
     },
     formatRadiogram(data) {
       let radiogram = Object.assign({}, data)
+      radiogram.year = parseInt(moment().format('YYYY'))
       radiogram.check = radiogram.messageGroups.length
       radiogram.message = radiogram.messageGroups.map(m => m.txt).join(' ')
-      return radiogram
+      radiogram.stationOfOrigin = this.callsign
+      delete radiogram.messageGroups
 
+      return radiogram
     },
   }
 }
@@ -207,18 +187,19 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
 }
 
-.radiogram-preview-header {
-  span {
-    margin: 0 5px;
-  }
-}
-.radiogram-preview-message {
-  margin: 15px;
-}
-.radiogram-confirm-dialog {
-  max-width: 350px !important;
-  max-height: 400px !important;
+#window {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  overflow: auto;
 }
 </style>

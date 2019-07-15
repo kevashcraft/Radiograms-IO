@@ -10,18 +10,20 @@
             <label>Number</label>
             <md-input v-model="radiogram.number" type="number" ref="number"></md-input>
           </md-field>
-          <md-field class="rg-col col-s1">
+          <md-field class="rg-col col-s15">
             <label>Precedence</label>
             <md-input v-model="radiogram.precedence" ref="precedence"></md-input>
           </md-field>
-          <md-field class="rg-col col-s1">
+          <md-field class="rg-col col-s05">
             <label>[HX]</label>
-            <md-input v-model="radiogram.hx"  ref="hx"></md-input>
+            <md-input v-model="radiogram.hx" ref="hx"></md-input>
           </md-field>
-          <md-field class="rg-col col-s2">
-            <label>Station of Origin</label>
-            <md-input v-model="radiogram.stationOfOrigin" disabled ref="stationOfOrigin"></md-input>
-          </md-field>
+          <a @click="openCallsignDialog" class="rg-col col-s15 no-a a-col">
+            <md-field class="rg-col col-s2">
+              <label>Station of Origin</label>
+              <md-input v-model="callsign" disabled style="z-index: -1"></md-input>
+            </md-field>
+          </a>
           <md-field class="rg-col col-s1">
             <label>Check</label>
             <md-input :value="check" disabled></md-input>
@@ -62,8 +64,13 @@
             <md-input v-model="grp.txt" @input.native="checkForSpace($event, idx)" :ref="inputRef(idx)"></md-input>
           </md-field>
         </div>
-        <div class="form-row">
-          <md-button type="submit">Send</md-button>
+        <div class="form-row flex-center form-actions">
+          <md-button type="submit" class="md-primary md-raised">
+            <div class="icon-button">
+              <span>Send Message</span>
+              <md-icon>send</md-icon>
+            </div>
+          </md-button>
         </div>
       </form>
     </md-card-content>
@@ -110,6 +117,10 @@
     font-size: 12px;
   }
 }
+.a-col {
+  display: inline-block;
+  // width: 120px;
+}
 .msg-col {
   flex: 0 !important;
   input {
@@ -122,6 +133,13 @@
     flex: 1 !important;
     min-width: 25% !important;
     max-width: 30% !important;
+  }
+}
+.col-s05 {
+  width: 80px;
+  // flex: 0;
+  input {
+    max-width: 50px;
   }
 }
 .col-s1 {
@@ -165,7 +183,12 @@
 .md-field {
   margin-bottom: 0 !important;
 }
-
+.flex-center {
+  justify-content: center;
+}
+.form-actions {
+  margin-top: 65px;
+}
 </style>
 
 
@@ -174,10 +197,24 @@ import moment from 'moment'
 
 export default {
   name: 'Radiogram',
+  props: {
+    callsign: String,
+  },
   computed: {
     check () {
       return this.radiogram.messageGroups.filter(g => g.txt.length > 0).length
     },
+  },
+  watch: {
+    check (populated) {
+      let total = this.radiogram.messageGroups.length
+      let available = total - populated
+      if (available < 10) {
+        for (let i=0; i < 5; i++) {
+          this.radiogram.messageGroups.push({txt: ''})
+        }
+      }
+    }
   },
   data () {
     return {
@@ -185,16 +222,18 @@ export default {
         number: 1,
         precedence: 'R',
         hx: 'HXG',
-        stationOfOrigin: 'KM4FPA',
         placeOfOrigin: '',
         dateFiled: moment().format('YYYY-MM-DD'),
         timeFiled: moment().format('HH:mm'),
         destination: 'tdemop',
         destinationEmail: '',
         destinationPhone: '',
-        messageGroups: new Array(25).fill().map(() => Object.assign({}, {txt: ''}))
+        messageGroups: new Array(15).fill().map(() => Object.assign({}, {txt: ''}))
       },
     }
+  },
+  created () {
+    this.radiogramSpec = JSON.stringify(this.radiogram)
   },
   mounted () {
   },
@@ -203,10 +242,6 @@ export default {
       return `input-${idx}`
     },
     checkForSpace(e, idx) {
-      // console.log('e', e);
-      // console.log('e', e);
-      // this.radiogram.destination = JSON.stringify(e)
-      // this.radiogram.destinationEmail += e.charCode
       if (e.data && e.data === ' ') {
         if (idx < this.radiogram.messageGroups.length - 1) {
           this.$refs[`input-${idx+1}`][0].$el.focus()
@@ -222,8 +257,19 @@ export default {
         event.preventDefault()
       }
     },
+    openCallsignDialog () {
+      this.$emit('callsignopen')
+    },
+    setNumber (n) {
+      this.radiogram.number = n
+    },
     send () {
       this.$emit('send', this.radiogram)
+    },
+    reset (n) {
+      let radiogram = JSON.parse(this.radiogramSpec)
+      radiogram.number = n
+      this.radiogram = radiogram
     }
   }
 }

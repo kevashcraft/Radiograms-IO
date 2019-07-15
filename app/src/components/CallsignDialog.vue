@@ -5,7 +5,7 @@
       <form @submit.prevent="close">
         <md-field>
           <label>Callsign</label>
-          <md-input v-model="callsign"></md-input>
+          <md-input v-model="callsign" ref="callsign"></md-input>
         </md-field>
       </form>
     </md-content>
@@ -29,6 +29,13 @@ export default {
       let upper = val.toUpperCase()
       if (val !== upper) {
         this.callsign = upper
+      }
+    },
+    opened (val) {
+      if (val) {
+        setTimeout(() => {
+          this.$refs['callsign'].$el.focus()
+        }, 500)
       }
     }
   },

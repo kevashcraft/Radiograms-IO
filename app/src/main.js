@@ -3,7 +3,7 @@ import App from './App.vue'
 
 // Vue Material
 import { MdButton, MdContent, MdField, MdList, MdMenu, MdSwitch } from 'vue-material/dist/components'
-import { MdCard, MdChips, MdDialog, MdDrawer, MdIcon, MdSnackbar, MdToolbar } from 'vue-material/dist/components'
+import { MdCard, MdChips, MdDialog, MdIcon, MdSnackbar } from 'vue-material/dist/components'
 import 'vue-material/dist/vue-material.min.css'
 
 import './styles/main.scss'

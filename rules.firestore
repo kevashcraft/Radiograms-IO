@@ -2,9 +2,10 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /callsigns/{callsign} {
-      match /messages/{message} {
+      match /radiograms/{radiogram} {
         allow read: if true;
         allow create: if request.resource.data.timestamp == request.time
+                      && request.resource.data.year is int
                       && request.resource.data.number is int
                       && request.resource.data.number > 0
                       && request.resource.data.precedence is string
