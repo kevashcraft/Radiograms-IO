@@ -25,10 +25,14 @@ ingress:
   hosts:
     - host: radiograms-io.kevapps.com
       paths: ['']
+    - host: radiograms.io
+      paths: ['']
   tls:
     - secretName: radiograms-io-kevapps-tls
       hosts:
         - radiograms-io.kevapps.com
+        - radiograms.io
+        - www.radiograms.io
 
 resources: {}
 
