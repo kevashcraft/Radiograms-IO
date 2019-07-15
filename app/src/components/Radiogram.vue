@@ -30,7 +30,7 @@
           </md-field>
           <md-field class="rg-col col-s2">
             <label>Place of Origin</label>
-            <md-input v-model="radiogram.placeOfOrigin" disabled ref="placeOfOrigin"></md-input>
+            <md-input v-model="radiogram.placeOfOrigin" ref="placeOfOrigin"></md-input>
           </md-field>
           <md-field class="rg-col col-s2">
             <label>Time Filed</label>
@@ -78,6 +78,10 @@
 </template>
 
 <style lang="scss" scoped>
+.radiogram {
+  max-width: 950px;
+  // overflow-x: hidden;
+}
 .form-row {
   display: flex;
   flex-wrap: wrap;
@@ -225,7 +229,7 @@ export default {
         placeOfOrigin: '',
         dateFiled: moment().format('YYYY-MM-DD'),
         timeFiled: moment().format('HH:mm'),
-        destination: 'tdemop',
+        destination: '',
         destinationEmail: '',
         destinationPhone: '',
         messageGroups: new Array(15).fill().map(() => Object.assign({}, {txt: ''}))
@@ -265,6 +269,15 @@ export default {
     },
     send () {
       this.$emit('send', this.radiogram)
+    },
+    set (radiogram) {
+      this.radiogram.hx = radiogram.hx
+      this.radiogram.precedence = radiogram.precedence
+      this.radiogram.placeOfOrigin = radiogram.placeOfOrigin
+      this.radiogram.destination = radiogram.destination
+      this.radiogram.destinationPhone = radiogram.destinationPhone
+      this.radiogram.destinationEmail = radiogram.destinationEmail
+      this.radiogram.messageGroups = radiogram.message.split(' ').map(txt => Object.assign({}, {txt}))
     },
     reset (n) {
       let radiogram = JSON.parse(this.radiogramSpec)

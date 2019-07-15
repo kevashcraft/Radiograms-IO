@@ -2,7 +2,7 @@
   <div id="app">
     <div id="window">
       <Radiogram :callsign="callsign" @callsignopen="openCallsignDialog" @send="confirmRadiogram($event)" ref="radiogram" />
-      <RadiogramList :radiograms="radiograms" />
+      <RadiogramList :callsign="callsign" :radiograms="radiograms" @radiogram="copyRadiogram($event)" />
     </div>
     <RadiogramDialog :radiogram="radiogram" @sendit="addRadiogram" ref="radiogramDialog" />
     <CallsignDialog @callsign="setCallsign" ref="callsignDialog" />
@@ -82,6 +82,9 @@ export default {
       window.localStorage.setItem('callsign', callsign)
       this.getRadiograms()
     },
+    copyRadiogram (radiogram) {
+      this.$refs['radiogram'].set(radiogram)
+    },
     getRadiograms () {
       if (!this.callsign) return
       let year = parseInt(moment().format('YYYY'))
@@ -155,7 +158,7 @@ export default {
       let stationRef =  this.db.collection('callsigns').doc('KM4FPA')
       let docRef = stationRef.collection('radiograms').doc(docId)
       docRef.set(radiogram).then(() => {
-        this.radiograms.push(radiogram)
+        this.radiograms.unshift(radiogram)
         this.$refs['radiogram'].reset(radiogram.number + 1)
         this.showRadiogramConfirm = false
         this.snackbarMessage = 'Message sent!'
@@ -198,8 +201,13 @@ export default {
   position: absolute;
   top: 0;
   right: 0;
-  bottom: 0;
   left: 0;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  // border: 1px solid blue;
 }
 </style>
