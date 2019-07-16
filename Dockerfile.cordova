@@ -27,11 +27,11 @@ RUN npm run build
 
 RUN mkdir -p /cordova
 WORKDIR /cordova
-RUN cordova create radiogram-io com.kevapps.radiogram_io radiogram_io
-RUN rm -rf /cordova/radiogram-io/www
-RUN mv /app/dist /cordova/radiogram-io/www
+RUN cordova create radiograms-io com.kevapps.radiograms_io radiograms_io
+RUN rm -rf /cordova/radiograms-io/www
+RUN mv /app/dist /cordova/radiograms-io/www
 
-WORKDIR /cordova/radiogram-io
+WORKDIR /cordova/radiograms-io
 RUN cordova telemetry off
 RUN cordova platform add android@8.0.0
 
