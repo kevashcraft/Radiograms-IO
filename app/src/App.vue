@@ -173,6 +173,7 @@ export default {
     formatRadiogram(data) {
       let radiogram = Object.assign({}, data)
       radiogram.year = parseInt(moment().format('YYYY'))
+      radiogram.number = parseInt(data.number)
       radiogram.check = radiogram.messageGroups.length
       radiogram.message = radiogram.messageGroups.map(m => m.txt).join(' ')
       radiogram.stationOfOrigin = this.callsign
