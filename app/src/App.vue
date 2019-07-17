@@ -102,6 +102,7 @@ export default {
       let snackbar = false
 
       // ensure number is int
+      console.log('this.radiogram', this.radiogram);
       if (!Number.isInteger(this.radiogram.number) || !(this.radiogram.number > 0)) {
         snackbar = 'Error: Number must be an integer'
         this.$refs['radiogram'].focusInput('number')
